@@ -1,0 +1,818 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f6f2">
+  <title>Mom Connect</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg: #f8f6f2;
+      --surface: #ffffff;
+      --text: #292923;
+      --muted: #77776f;
+      --accent: #7868a8;
+      --accent-light: #eee9f7;
+      --border: #e9e5de;
+      --success: #32765a;
+      --danger: #b84c4c;
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      line-height: 1.55;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .hidden { display: none !important; }
+
+    .container {
+      width: min(100% - 32px, 1000px);
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.7);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      background: var(--accent-light);
+      font-size: 24px;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: 2px;
+      font-size: 22px;
+      letter-spacing: -.5px;
+    }
+
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+
+    main { padding: 34px 0 60px; }
+
+    .hero {
+      margin-bottom: 26px;
+    }
+
+    .hero h2 {
+      font-size: clamp(27px, 5vw, 38px);
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 30px rgba(50,40,20,.035);
+    }
+
+    .auth-panel {
+      max-width: 440px;
+      margin: 28px auto;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin: 15px 0 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 17px;
+      background: var(--accent);
+      color: white;
+      font-weight: 650;
+    }
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: wait;
+    }
+
+    .btn.secondary {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+
+    .btn.full { width: 100%; margin-top: 18px; }
+
+    .auth-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .auth-actions button { flex: 1; }
+
+    .status {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--accent-light);
+      color: var(--accent);
+      margin: 14px 0;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .status.error {
+      color: var(--danger);
+      background: #fff0ef;
+    }
+
+    .status.success {
+      color: var(--success);
+      background: #edf7f0;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 0 14px;
+    }
+
+    .tab {
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--muted);
+      padding: 10px 17px;
+      border-radius: 999px;
+    }
+
+    .tab.active {
+      color: white;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .section-heading h2 {
+      margin-bottom: 0;
+      font-size: 22px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .photo-card, .message-card, .location-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      background: white;
+      min-width: 0;
+    }
+
+    .photo-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: 12px;
+      background: var(--bg);
+      margin-bottom: 12px;
+    }
+
+    .message-card, .location-card {
+      margin-bottom: 12px;
+    }
+
+    .message-card h3, .location-card h3 {
+      font-size: 17px;
+      margin-bottom: 8px;
+      overflow-wrap: anywhere;
+    }
+
+    .message-content {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      margin-bottom: 12px;
+    }
+
+    .map-link {
+      display: inline-block;
+      color: var(--accent);
+      font-weight: 650;
+      margin-top: 10px;
+      text-decoration: none;
+    }
+
+    .empty {
+      padding: 38px 18px;
+      text-align: center;
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      color: var(--muted);
+      grid-column: 1 / -1;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 24px 0 35px;
+    }
+
+    @media (max-width: 600px) {
+      main { padding-top: 24px; }
+      .panel { padding: 18px; }
+      .grid { grid-template-columns: 1fr; }
+      .hero h2 { font-size: 29px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container brand">
+      <div class="brand-icon" aria-hidden="true">♡</div>
+      <div>
+        <h1>Mom Connect</h1>
+        <div class="muted small">A little closer, wherever we are.</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="authSection" class="panel auth-panel">
+      <h2>Welcome, Mom</h2>
+      <p class="muted">
+        Sign in to view the photos, messages and location updates
+        shared with you.
+      </p>
+
+      <form id="authForm">
+        <label for="email">Email address</label>
+        <input id="email" type="email" autocomplete="email"
+          required placeholder="you@example.com">
+
+        <label for="password">Password</label>
+        <input id="password" type="password"
+          autocomplete="current-password" required minlength="6"
+          placeholder="Your password">
+
+        <button class="btn full" id="signInBtn" type="submit">
+          Sign in
+        </button>
+      </form>
+
+      <div class="auth-actions">
+        <button class="btn secondary" id="registerBtn" type="button">
+          Create account
+        </button>
+        <button class="btn secondary" id="resetBtn" type="button">
+          Forgot password
+        </button>
+      </div>
+
+      <div id="authStatus" class="status hidden" role="status"></div>
+      <p class="muted small">
+        Your account only displays records addressed to your signed-in
+        account. Keep your password private.
+      </p>
+    </section>
+
+    <section id="dashboard" class="hidden">
+      <div class="hero">
+        <h2>Your family updates</h2>
+        <p class="muted">
+          Photos, thoughtful messages and the latest locations
+          shared with you.
+        </p>
+      </div>
+
+      <div class="toolbar">
+        <div>
+          <div class="small muted">SIGNED IN AS</div>
+          <div id="accountEmail"></div>
+        </div>
+        <button class="btn secondary" id="signOutBtn">Sign out</button>
+      </div>
+
+      <div id="appStatus" class="status hidden" role="status"></div>
+
+      <nav class="tabs" aria-label="Shared updates">
+        <button class="tab active" data-tab="photos">♡ Photos</button>
+        <button class="tab" data-tab="messages">✉ Messages</button>
+        <button class="tab" data-tab="locations">⌖ Locations</button>
+      </nav>
+
+      <section class="panel" id="photosSection">
+        <div class="section-heading">
+          <h2>Shared photos</h2>
+          <button class="btn secondary" id="refreshPhotos">Refresh</button>
+        </div>
+        <div id="photosList" class="grid">
+          <div class="empty">Loading photos...</div>
+        </div>
+      </section>
+
+      <section class="panel hidden" id="messagesSection">
+        <div class="section-heading">
+          <h2>Messages for you</h2>
+          <button class="btn secondary" id="refreshMessages">Refresh</button>
+        </div>
+        <div id="messagesList">
+          <div class="empty">Loading messages...</div>
+        </div>
+      </section>
+
+      <section class="panel hidden" id="locationsSection">
+        <div class="section-heading">
+          <h2>Shared locations</h2>
+          <button class="btn secondary" id="refreshLocations">Refresh</button>
+        </div>
+        <p class="muted small">
+          These are locations explicitly shared by the sender.
+          They are not live tracking.
+        </p>
+        <div id="locationsList">
+          <div class="empty">Loading locations...</div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="container">
+    Mom Connect · Private family sharing
+  </footer>
+
+  <script>
+    "use strict";
+
+    // Replace these with your Supabase project credentials.
+    const SUPABASE_URL = "https://YOUR_PROJECT_REF.supabase.co";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY";
+
+    const configured =
+      SUPABASE_URL.startsWith("https://") &&
+      !SUPABASE_URL.includes("YOUR_PROJECT_REF") &&
+      !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE");
+
+    const authSection = document.getElementById("authSection");
+    const dashboard = document.getElementById("dashboard");
+    const authStatus = document.getElementById("authStatus");
+    const appStatus = document.getElementById("appStatus");
+
+    let client = null;
+    let currentUser = null;
+    let loading = false;
+
+    if (configured && window.supabase) {
+      client = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY,
+        {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        }
+      );
+    } else {
+      showStatus(
+        authStatus,
+        "Add your Supabase project URL and publishable key in the HTML configuration.",
+        "error"
+      );
+    }
+
+    function showStatus(element, message, type = "") {
+      element.textContent = message;
+      element.className = "status" + (type ? " " + type : "");
+      element.classList.remove("hidden");
+    }
+
+    function clearStatus(element) {
+      element.textContent = "";
+      element.className = "status hidden";
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    function formatDate(value) {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime())
+        ? "Date unavailable"
+        : date.toLocaleString(undefined, {
+            dateStyle: "medium",
+            timeStyle: "short"
+          });
+    }
+
+    function setLoggedIn(user) {
+      currentUser = user || null;
+      authSection.classList.toggle("hidden", !!user);
+      dashboard.classList.toggle("hidden", !user);
+
+      if (user) {
+        document.getElementById("accountEmail").textContent =
+          user.email || "Signed-in account";
+      } else {
+        document.getElementById("password").value = "";
+      }
+    }
+
+    async function signIn(event) {
+      event.preventDefault();
+      if (!client) return;
+
+      const button = document.getElementById("signInBtn");
+      button.disabled = true;
+      clearStatus(authStatus);
+
+      try {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        const { data, error } = await client.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) throw error;
+
+        setLoggedIn(data.user);
+        showStatus(appStatus, "Signed in. Loading your updates.", "success");
+        await refreshAll();
+      } catch (error) {
+        showStatus(authStatus, error.message || "Sign-in failed.", "error");
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function register() {
+      if (!client) return;
+
+      clearStatus(authStatus);
+
+      try {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        if (!email || password.length < 6) {
+          throw new Error("Enter a valid email and a password of at least 6 characters.");
+        }
+
+        const { data, error } = await client.auth.signUp({
+          email,
+          password
+        });
+
+        if (error) throw error;
+
+        if (data.session) {
+          setLoggedIn(data.user);
+          showStatus(appStatus, "Account created.", "success");
+          await refreshAll();
+        } else {
+          showStatus(
+            authStatus,
+            "Account request submitted. Check your email to confirm the account, then sign in.",
+            "success"
+          );
+        }
+      } catch (error) {
+        showStatus(authStatus, error.message || "Registration failed.", "error");
+      }
+    }
+
+    async function resetPassword() {
+      if (!client) return;
+
+      const email = document.getElementById("email").value.trim();
+
+      if (!email) {
+        showStatus(authStatus, "Enter your email address first.", "error");
+        return;
+      }
+
+      try {
+        const { error } = await client.auth.resetPasswordForEmail(email);
+
+        if (error) throw error;
+
+        showStatus(
+          authStatus,
+          "If password recovery is enabled, check your email for the reset link.",
+          "success"
+        );
+      } catch (error) {
+        showStatus(authStatus, error.message || "Password reset failed.", "error");
+      }
+    }
+
+    async function signOut() {
+      if (!client) return;
+
+      const { error } = await client.auth.signOut();
+
+      if (error) {
+        showStatus(appStatus, error.message, "error");
+        return;
+      }
+
+      currentUser = null;
+      setLoggedIn(null);
+      clearStatus(appStatus);
+    }
+
+    function showEmpty(element, message) {
+      element.innerHTML = '<div class="empty">' +
+        escapeHTML(message) + '</div>';
+    }
+
+    async function loadPhotos() {
+      const container = document.getElementById("photosList");
+      showEmpty(container, "Loading photos...");
+
+      const { data, error } = await client
+        .from("mom_photos")
+        .select("id, storage_path, caption, created_at")
+        .eq("recipient_id", currentUser.id)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        showEmpty(container, "No photos have been shared with you yet.");
+        return;
+      }
+
+      const cards = await Promise.all(data.map(async photo => {
+        const { data: signed, error: urlError } = await client.storage
+          .from("mom-photos")
+          .createSignedUrl(photo.storage_path, 900);
+
+        const image = signed?.signedUrl && !urlError
+          ? '<img src="' + escapeHTML(signed.signedUrl) +
+            '" alt="' + escapeHTML(photo.caption || "Shared photo") +
+            '" loading="lazy">'
+          : '<div class="empty">This photo is temporarily unavailable.</div>';
+
+        return `
+          <article class="photo-card">
+            ${image}
+            <div>${escapeHTML(photo.caption || "A photo shared with you")}</div>
+            <p class="muted small">${escapeHTML(formatDate(photo.created_at))}</p>
+          </article>
+        `;
+      }));
+
+      container.innerHTML = cards.join("");
+    }
+
+    async function loadMessages() {
+      const container = document.getElementById("messagesList");
+      showEmpty(container, "Loading messages...");
+
+      const { data, error } = await client
+        .from("mom_messages")
+        .select("id, title, content, created_at")
+        .eq("recipient_id", currentUser.id)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        showEmpty(container, "No messages have been shared with you yet.");
+        return;
+      }
+
+      container.innerHTML = data.map(message => `
+        <article class="message-card">
+          <h3>${escapeHTML(message.title || "A message for you")}</h3>
+          <div class="message-content">${escapeHTML(message.content)}</div>
+          <div class="muted small">${escapeHTML(formatDate(message.created_at))}</div>
+        </article>
+      `).join("");
+    }
+
+    async function loadLocations() {
+      const container = document.getElementById("locationsList");
+      showEmpty(container, "Loading locations...");
+
+      const { data, error } = await client
+        .from("mom_location_updates")
+        .select("id, latitude, longitude, accuracy_meters, created_at")
+        .eq("recipient_id", currentUser.id)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        showEmpty(container, "No locations have been shared with you yet.");
+        return;
+      }
+
+      container.innerHTML = data.map(location => {
+        const lat = Number(location.latitude);
+        const lon = Number(location.longitude);
+
+        const valid = Number.isFinite(lat) && Number.isFinite(lon) &&
+          lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+
+        const mapURL = valid
+          ? "https://www.google.com/maps?q=" +
+            encodeURIComponent(lat + "," + lon)
+          : "";
+
+        const accuracy = Number(location.accuracy_meters);
+        const accuracyText = Number.isFinite(accuracy) && accuracy >= 0
+          ? Math.round(accuracy) + " metres"
+          : "Not provided";
+
+        return `
+          <article class="location-card">
+            <h3>Shared location</h3>
+            <p><strong>Latitude:</strong> ${valid ? escapeHTML(lat) : "Invalid"}</p>
+            <p><strong>Longitude:</strong> ${valid ? escapeHTML(lon) : "Invalid"}</p>
+            <p><strong>Accuracy:</strong> ${escapeHTML(accuracyText)}</p>
+            <p class="muted small">${escapeHTML(formatDate(location.created_at))}</p>
+            ${valid
+              ? '<a class="map-link" href="' + escapeHTML(mapURL) +
+                '" target="_blank" rel="noopener noreferrer">Open in Google Maps ↗</a>'
+              : ""}
+          </article>
+        `;
+      }).join("");
+    }
+
+    async function refreshAll() {
+      if (!client || !currentUser || loading) return;
+
+      loading = true;
+      clearStatus(appStatus);
+
+      try {
+        await Promise.all([
+          loadPhotos(),
+          loadMessages(),
+          loadLocations()
+        ]);
+
+        showStatus(appStatus, "Your updates are up to date.", "success");
+      } catch (error) {
+        showStatus(
+          appStatus,
+          "Unable to load some updates. Check your connection and Supabase policies. " +
+            (error.message || ""),
+          "error"
+        );
+      } finally {
+        loading = false;
+      }
+    }
+
+    async function refreshSection(loader) {
+      if (!client || !currentUser || loading) return;
+
+      loading = true;
+      clearStatus(appStatus);
+
+      try {
+        await loader();
+        showStatus(appStatus, "Updated successfully.", "success");
+      } catch (error) {
+        showStatus(appStatus, error.message || "Refresh failed.", "error");
+      } finally {
+        loading = false;
+      }
+    }
+
+    document.getElementById("authForm").addEventListener("submit", signIn);
+    document.getElementById("registerBtn").addEventListener("click", register);
+    document.getElementById("resetBtn").addEventListener("click", resetPassword);
+    document.getElementById("signOutBtn").addEventListener("click", signOut);
+
+    document.getElementById("refreshPhotos").addEventListener(
+      "click", () => refreshSection(loadPhotos)
+    );
+
+    document.getElementById("refreshMessages").addEventListener(
+      "click", () => refreshSection(loadMessages)
+    );
+
+    document.getElementById("refreshLocations").addEventListener(
+      "click", () => refreshSection(loadLocations)
+    );
+
+    document.querySelectorAll(".tab").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(tab =>
+          tab.classList.toggle("active", tab === button)
+        );
+
+        ["photos", "messages", "locations"].forEach(name => {
+          document.getElementById(name + "Section")
+            .classList.toggle("hidden", name !== button.dataset.tab);
+        });
+      });
+    });
+
+    async function initialize() {
+      if (!client) return;
+
+      const { data, error } = await client.auth.getSession();
+
+      if (error) {
+        showStatus(authStatus, "Unable to restore your session.", "error");
+        return;
+      }
+
+      if (data.session?.user) {
+        setLoggedIn(data.session.user);
+        await refreshAll();
+      }
+    }
+
+    initialize();
+  </script>
+</body>
+</html>
